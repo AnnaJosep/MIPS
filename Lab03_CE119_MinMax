@@ -1,0 +1,122 @@
+.data 
+	array: .word 0:100
+	size: .word 
+	input_size: .asciiz "Nhap so phan tu:\n"
+	input_array: .asciiz "Nhap Mang:\n"
+	input_chiso: .asciiz "\nNhap chi so:\n"
+	out_Max: .asciiz "Max: "
+	out_Min: .asciiz "\nMin: "
+	out_giatri: .asciiz "Gia tri tuong ung: "
+	
+.text 
+jal Nhap
+jal Max_Min
+j Xuat
+
+Nhap:
+	la $a1, array		# Con tro $a1 tro den dia chi cua mang array
+	la $a2, size 		# Con tro $a2 tro den dia chi cua size 
+	
+	la $a0, input_size	# Xuat chuoi string input_size
+	li $v0, 4
+	syscall
+	
+	li $v0, 5		# Nhap size
+	syscall
+	add $t1, $v0, $zero	# $t1 = size
+	
+	sw $t1, 0($a2)
+	add $t0, $zero, $zero	# $t0 = i = 0
+	
+	la $a0, input_array	# Xuat chuoi string input_array		
+	li $v0, 4
+	syscall
+	NhapMang: # Vong lenh nhap 
+		slt $t2, $t0, $t1 	# Dieu kien nhap 
+		beq $t2, $zero, Exit1
+		
+		li $v0, 5	# Nhap 
+		syscall 
+		sw $v0, 0($a1)	# Luu vao mang array
+		
+		addi $a1, $a1, 4	# Tang dia chi con tro len 4
+		addi $t0, $t0, 1	# Tang i len 1
+		
+		j NhapMang
+		
+Max_Min:	# Tim Min-Max trong mang
+	la $a1, array		# Con tro $a1 tro den dia chi cua mang array
+	lw $a2, size 		# Con tro $a2 tro den dia chi cua size 
+	la $a3, array		# Con tro $a3 tro den dia chi cua mang array
+	lw $s0, 0($a1)		# Gia dinh max la phan tu dau tien trong mang va luu vao $s0
+	lw $s1, 0($a1)		# Gia dinh min la phan tu dau tien trong mang va luu vao $s1
+	addi $a1, $a1, 4	
+	addi $a3, $a3, 4
+	addi $t0 , $zero, 1	# $t0 = i = 1
+	
+	Max: 
+		lw $t1, 0($a1)		# Lay gia tri tai con tro 
+		blt $t1, $s0 ,next1	# So sanh voi max hien tai neu nho hon thi nhay den nhan next1
+		move $s0, $t1		# Neu lon hon max hien tai thi gan lai max 
+		
+	next1:
+		addi $a1, $a1, 4	# Tang dia chi con tro len 4 
+		addi $t0, $t0, 1	# Tang i len 1 
+		blt $t0, $a2, Max	# Neu i < size thi qua lai Max
+		la $a0, out_Max		# Neu duyet het mang thi xuat chuoi string out_Max
+		li $v0, 4		
+		syscall
+		
+		la $a0, ($s0)		# Xuat Max 
+		li $v0, 1
+		syscall
+		
+		
+	addi $t0 , $zero, 1
+	
+	Min:
+		lw $t1, 0($a3)		# Lay gia tri tai con tro 
+		bgt $t1, $s1 ,next2	# So sanh voi min hien tai neu lon hon thi nhay den nhan next1
+		move $s1, $t1		# Neu nho hon min hien tai thi gan lai min
+	next2:
+		addi $a3, $a3, 4	# Tang dia chi con tro len 4 
+		addi $t0, $t0, 1	# Tang i len 1 
+		blt $t0, $a2, Min	# Neu i < size thi quay lai Min
+		la $a0, out_Min		# Neu duyet het mang thi xuat chuoi string out_Min
+		li $v0, 4
+		syscall
+		
+		la $a0, ($s1)		# Xuat Min
+		li $v0, 1
+		syscall
+		
+		
+	j Exit1
+
+Xuat: 		# Xuat theo yeu cau 
+	la $a1, array 		# Con tro $a1 tro den dia chi mang array
+
+	la $a0, input_chiso	# Xuat chuoi string input_chiso
+	li $v0, 4
+	syscall
+	
+	li $v0, 5		# Nhap chi so 
+	syscall
+	addi $t0, $v0, 0 	# $t0 = n = chi so 
+	
+	sll $t2, $t0, 2		# Lay dia chi cua chi so 
+	add $a1, $a1, $t2
+	
+	la $a0, out_giatri	# Xuat chuoi string out_giatri
+	li $v0, 4
+	syscall
+	
+	lw $a0, 0($a1)		# Xuat gai tri 
+	li $v0, 1
+	syscall
+	j Exit
+Exit1:	
+	jr $ra
+Exit:
+	addi $v0, $0, 10
+	syscall
