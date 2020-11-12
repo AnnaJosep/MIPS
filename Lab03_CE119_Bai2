@@ -1,0 +1,182 @@
+.data
+	array1: .word 5, 6, 7, 8, 1, 2, 3, 9, 10, 4
+	size1: .word 10
+	output1: .asciiz "Xuat mang array1:\n"
+	array2: .byte 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16
+	size2: .word 16
+	output2: .asciiz "\nXuat mang array2:\n"
+	array3: .space 8
+	size3: .word 8
+	output3: .asciiz "\nXuat mang array3:\n"
+	input1: .asciiz "\nNhap n:(la so thu tu cua mang)\n"
+	input2: .asciiz "Nhap chi so:\n" 
+	output_giatri: .asciiz "Co Gia tri la: "
+.text
+jal XuatArray1
+jal GanMangArray3
+jal Array3
+j Nhap
+
+XuatArray1:
+	la $a1, array1		# con tro $a1 tro den dia chi mang array1
+	lw $a2, size1		# luu size1 vao thanh ghi $a2
+	addi $t0, $zero, 0	# khoi tao i = 0 ( thanh ghi $t0 )
+	la $a0, output1		# Xuat bien string output1
+	li $v0, 4
+	syscall
+	XuatPhanTu1:		# Xuat phan tu mang array1
+		slt $t1, $t0, $a2	# Dieu kien lap 
+		beq $t1, $zero, Array2
+	
+		lw $a0, 0($a1)		# Xuat phan tu 
+		li $v0, 1
+		syscall
+		
+		add $a0, $zero, 0x20	# Xuat khoang trang
+		li $v0, 11
+		syscall
+		
+		addi $a1, $a1, 4	# Tang dia chi con tro len 4 byte
+		addi $t0, $t0, 1	# Tang bien i len 1 
+		
+		j XuatPhanTu1
+Array2:
+	la $a1, array2		# Con tro $a1 tro den dia chi mang array2
+	lw $a2, size2		# Luu size2 vao thanh ghi $a2
+	addi $t0, $zero, 0	# Khoi tao i = 0 ( thanh ghi $t0 )
+	la $a0, output2		# Xuat bien string output2
+	li $v0, 4
+	syscall
+	XuatPhanTu2:		# Xuat phan tu trong mang array2
+		slt $t1, $t0, $a2	# Dieu kien lap 
+		beq $t1, $zero, Exit1
+	
+		lbu $a0, 0($a1)		# Xuat phan tu 
+		li $v0, 1
+		syscall
+		
+		add $a0, $zero, 0x20	# Xuat khoang trang 
+		li $v0, 11
+		syscall
+		
+		addi $a1, $a1, 1	# Tang dia chi con tro len 1 byte
+		addi $t0, $t0, 1	# Tang bien i len 1
+		
+		j XuatPhanTu2
+		
+GanMangArray3:
+	la $a2, array2		# Con tro $a2 tro den dia chi mang array2
+	la $a3, array3		# Con tro $a3 tro den dia chi mang array3
+	lw $t0, size3		# Luu size3 vao thanh ghi $t0
+	lw $s0, size2		# Luu size2 vao thanh ghi $s0
+	addi $t1, $zero, 0	# Khoi tao i = 0 ( thanh ghi $t1 )
+	Gan:		# Gan gia tri cho mang array3
+		slt $t2, $t1, $t0	# Dieu kien lap
+		beq $t2, $zero, Exit1	
+		
+		add $s2, $a2, $t1	# Lay dia chi array2[i]
+		lbu $t3, 0($s2)		# Lay gia tri luu vao $t3
+		
+		addi $t4, $s0, -1	# Lay size2 - 1
+		sub $t4, $t4, $t1	# size2 - 1 - i
+		add $t5, $a2, $t4	# Lay dia chi array2[siz2 - 1 - i]
+		lbu $t6, ($t5)		# Lay gia tri luu vao %t6
+		add $t7, $t6, $t3	# $t7 = array2[i] + array2[size2 - 1 - i]
+		sb $t7, ($a3)		# Luu vao bo nho tai con tro $a3
+		
+		addi $t1, $t1, 1	# Tang i len 1
+		addi $a3, $a3, 1	# Tang con tro $a3 len 1 byte
+		
+		j Gan
+
+Array3:
+	la $a1, array3		# Con tro $a2 tro den dia chi array3
+	lw $a2, size3		# Luu size3 vao thanh ghi size3
+	addi $t0, $zero, 0	# Khoi tao i = 0
+	
+	la $a0, output3 	# Xuat bien string output3
+	li $v0, 4
+	syscall
+	XuatPhanTu3:	# Xuat phan tu mang array3
+		slt $t1, $t0, $a2	# Dieu kien lap 
+		beq $t1, $zero, Exit1
+	
+		lbu $a0, 0($a1)		# Xuat phan tu 
+		li $v0, 1
+		syscall
+		
+		add $a0, $zero, 0x20	# Xuat khoang trang 
+		li $v0, 11
+		syscall
+		
+		addi $a1, $a1, 1	# Tang con tro $a1 len 1 byte
+		addi $t0, $t0, 1	# Tang i len 1
+		j XuatPhanTu3
+			
+Nhap:	# Nhap theo yeu cau
+	la $a1, array1		# Con tro $a1 tro den dia chi array1
+	la $a2, array2		# Con tro $a2 tro den dia chi array2
+	la $a3, array3		# Con tro $a3 tro den dia chi array3
+
+	la $a0, input1		# Xuat chuoi string input1
+	li $v0, 4		
+	syscall
+
+	li $v0, 5		# Lenh nhap n 
+	syscall
+	addi $s0, $v0, 0 	# Gan $s0 = n
+	
+	la $a0, input2		# Xuat chuoi string input2
+	li $v0, 4
+	syscall
+	
+	li $v0, 5		# Lenh nhap chi so 
+	syscall
+	addi $s1, $v0, 0 	# Gan $s1 = chi so  
+	bne $s0, 1, mang2	# Neu n != 1 nhay den nhan mang2
+	sll $t0, $s1, 2		# Lay dia chi cua chi so vua nhap trong array1
+	add $a1, $t0, $a1
+	
+	la $a0, output_giatri
+	li $v0, 4
+	 syscall
+		
+	lw $a0, 0($a1)		# Xuat gia tri
+	li $v0, 1
+	syscall
+	
+	j Exit
+	mang2:
+		bne $s0, 2, mang3	# Neu n != 2 nhay den nhan mang3
+		add $a2, $s1, $a2	# Lay dia chi cua chi so vua nhap trong array2
+	
+		la $a0, output_giatri
+		li $v0, 4
+	 	syscall
+	 
+		lbu $a0, 0($a2)		# Xuat gia tri
+		li $v0, 1
+		syscall
+		
+		j Exit
+	mang3:
+		bne $s0, 3, Exit	# Neu n != 3 nhay den nhan Exit
+		add $a3, $s1, $a3	# Lay dia chi cua chi so vua nhap trong array3
+		
+		la $a0, output_giatri
+		li $v0, 4
+		syscall
+	 
+		lbu $a0, ($a3)		# Xuat gia tri 
+		li $v0, 1
+		syscall
+		
+		j Exit
+Exit1:
+	jr $ra
+	syscall
+	
+Exit:
+	addi $v0, $0, 10
+	syscall
+	
